@@ -1,10 +1,9 @@
 
 from django.db import models
-from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-
-
+from users.models import User
+from django.utils import timezone
 
 def validate_isbn(value):
     """
@@ -19,21 +18,6 @@ class TimestampedModel(models.Model):
 
     class Meta:
         abstract = True
-
-    
-
-class User(TimestampedModel):
-    full_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    membership_date = models.DateField(null=True, blank=True)
-
-
-    def __str__(self):
-        return self.full_name
-
-    
-
-
 
 
 class Book(models.Model):
@@ -68,5 +52,12 @@ class BorrowedBook(TimestampedModel):
     return_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f'{self.book.title} borrowed by {self.user.full_name}'
+        return f'{self.book.title} borrowed by {self.user.email}'
+    
+    @property
+    def is_book_freed(self):
+        today = timezone.now()
+        if self.return_date > today:
+            return False
+        return True
 
