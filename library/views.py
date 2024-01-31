@@ -14,6 +14,10 @@ class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]
+
+    """
+    create,write,delete operations provided to AdminUser only for Books
+    """
     
     action_permission_classes = {
         'destroy': [IsAuthenticated, IsAdminUser],
@@ -49,6 +53,11 @@ class BookDetailsViewSet(viewsets.ModelViewSet):
     serializer_class = BookDetailsSerializer
     
     permission_classes = [IsAuthenticated]
+
+
+    """
+    create,write,delete operations provided to AdminUser only for BooksDetails
+    """
     
     action_permission_classes = {
         'destroy': [IsAuthenticated, IsAdminUser],
