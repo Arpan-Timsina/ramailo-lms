@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 from .models import User, Book, BookDetail, BorrowedBook
 from .serializers import UserSerializer, BookSerializer, BookDetailsSerializer, BorrowedBooksSerializer
@@ -20,6 +21,7 @@ class BookDetailsViewSet(viewsets.ModelViewSet):
 class BorrowedBooksViewSet(viewsets.ModelViewSet):
     queryset = BorrowedBook.objects.all()
     serializer_class = BorrowedBooksSerializer
+    authentication_classes = IsAuthenticated
 
     def create(self, request, *args, **kwargs):
         book_id = request.data.get('book')  # Retrieve book_id from request data
