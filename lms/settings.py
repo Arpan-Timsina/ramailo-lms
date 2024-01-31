@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'library',
 
     #third party libraries
-    'rest_framework'
+    'rest_framework',
+    'rest_framework_simplejwt'
 ]
 
 MIDDLEWARE = [

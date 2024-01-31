@@ -14,6 +14,15 @@ class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Delete associated BookDetail
+        BookDetail.objects.filter(book=instance).delete()
+        # Delete associated BorrowedBook
+        BorrowedBook.objects.filter(book=instance).delete()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 class BookDetailsViewSet(viewsets.ModelViewSet):
     queryset = BookDetail.objects.all()
     serializer_class = BookDetailsSerializer
@@ -21,27 +30,21 @@ class BookDetailsViewSet(viewsets.ModelViewSet):
 class BorrowedBooksViewSet(viewsets.ModelViewSet):
     queryset = BorrowedBook.objects.all()
     serializer_class = BorrowedBooksSerializer
-    authentication_classes = IsAuthenticated
+    # authentication_classes = IsAuthenticated
 
-    def create(self, request, *args, **kwargs):
-        book_id = request.data.get('book')  # Retrieve book_id from request data
-        user_id = request.data.get('user')  # Retrieve user_id from request data
+    def perform_create(self, serializer):
+        serializer.save()
 
-        # Check if the book is already borrowed
-        if BorrowedBook.objects.filter(book_id=book_id, return_date__isnull=True).exists():
-            return Response({"error": "The book is already borrowed."}, status=status.HTTP_400_BAD_REQUEST)
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        # Custom logic to free up the book if return_date is added
+        if 'return_date' in request.data and instance.return_date is None:
+            instance.book.available = True
+            instance.book.save()
 
-        # Check if the user exists
-        if not User.objects.filter(id=user_id).exists():
-            return Response({"error": "User does not exist."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data)
 
-        # Check if the book exists
-        if not Book.objects.filter(id=book_id).exists():
-            return Response({"error": "Book does not exist."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Create borrowed book record
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
