@@ -11,7 +11,7 @@ The Library Management System is a web application built using Django, a high-le
 
     ```bash
     git clone <repository-url>
-    cd library-management-system
+    cd ramailo-lms
     ```
 
 2. Create a virtual environment (optional but recommended):
